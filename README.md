@@ -12,13 +12,16 @@ PHP Executor enables you to remotely queue and execute processes over distribute
 - AWS Credentials should be in ```~/.aws/credentials```
 
 First, Clone this repository using:
+
     > git clone https://github.com/sarthaksahni/php-executor
     > cd php-executor
 
 Now, install dependencies using ```composer```
+
     > composer install
 
 Copy [Sample Env](.env.sample) and create ```.env```
+
     > cp ./.env.sampel ./.env
 
 That's it, Installation process is done!
@@ -40,9 +43,11 @@ Here, ```Example``` is the class in [lib](lib) with a method ```test```.
 
 ##### Starting Workers
 After setting up your ```.env``` file execute ```start.php```
+
     > php start.php
 
 You can make the process more verbose by giving -v as option to ```start.php```.
+
     > php start.php -v 2
 
 ```-v``` takes parameters from ```1 - 4```, ```1``` being least verbose and ```4``` being most verbose.
