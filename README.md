@@ -22,7 +22,7 @@ Now, install dependencies using ```composer```
 
 Copy [Sample Env](.env.sample) and create ```.env```
 
-    > cp ./.env.sampel ./.env
+    > cp ./.env.sample ./.env
 
 That's it, Installation process is done!
 
