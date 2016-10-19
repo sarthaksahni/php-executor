@@ -1,0 +1,77 @@
+#!/usr/local/bin/php
+<?php
+define('BASE_PATH',__DIR__);
+require_once('./vendor/autoload.php');
+date_default_timezone_set("Asia/Kolkata");
+use Aws\Sqs\SqsClient;
+global $verbosity_set;
+
+$verbosity_set = isset(getopt("v:")['v']) ? getopt("v:")['v'] : 0;
+
+function verbose($msg, $verbosity_level) {
+  global $verbosity_set;
+  if ($verbosity_set == 0)
+    return ;
+  if($verbosity_level <= $verbosity_set) {
+    switch($verbosity_level) {
+      case 1: $msg_type = "Error";break;
+      case 2: $msg_type = "Warning";break;
+      case 3: $msg_type = "Notice";break;
+      case 4: $msg_type = "Info";break;
+    }
+    echo date("Y-m-d H:i:s").": (".getmypid().") (".$msg_type.") ".$msg."\r\n";
+    return;
+  }
+}
+verbose("Starting Worker..", 4);
+$client = SqsClient::factory(array(
+    'version' =>  getenv("SQS_VERSION"),
+    'profile' => getenv("SQS_PROFILE"),
+    'region'  => getenv("SQS_REGION")
+));
+
+$QueueUrl = getenv("SQS_QUEUE_URL");
+$msg_cnt = 0;
+verbose("Initiating..", 3);
+while(1) {
+  $result = $client->receiveMessage(array(
+      'QueueUrl' =>  $QueueUrl,
+  ));
+  if(is_null($result->get('Messages'))) {
+    sleep(1);
+    verbose("No message to process.. ",4);
+    continue;
+  }
+  verbose("Got new message.. ",4);
+  $message = $result->get('Messages')[0];
+  $msg = json_decode($message['Body'], true);
+  if(JSON_ERROR_NONE == json_last_error()){
+    verbose("Got new message: ".$message['MessageId'], 3);
+    if(file_exists(BASE_PATH."/lib/".$msg['class'].".php")) {
+      require_once(BASE_PATH."/lib/".$msg['class'].".php");
+      if(class_exists($msg['class'])) {
+        try{
+          verbose("Executing ".$msg['class']."::".$msg['method'], 3);
+          $msg['class']::$msg['method']($msg['args']);
+        }catch(Exception $e) {
+          verbose("Exception while processing Msg. ".$e->getMessage(), 2);
+        }
+      }else {
+        verbose("Unable to find class: ".$msg['class'].", discarding Message..", 2);
+      }
+    }else {
+      verbose("Unable to find file: ".$msg['class'].", discarding Message..", 2);
+    }
+  }else {
+    verbose("Unable to decode: ".$message['MessageId']." deleting message..", 2);
+  }
+  $client->deleteMessage([
+    'QueueUrl' => $QueueUrl,
+    'ReceiptHandle' =>  $message['ReceiptHandle']
+  ]);
+  $msg_cnt++;
+  verbose("Messages processed: ".$msg_cnt, 3);
+}
+verbose("Exiting process..",2);
+
+?>

@@ -1,0 +1,16 @@
+{
+    "name": "sarthaksahni/php-executor",
+    "description": "PHP Executor enables you to remotely queue and execute processes over distributed system.",
+    "type": "project",
+    "license": "GNU",
+    "authors": [
+        {
+            "name": "Sarthak Sawhney",
+            "email": "sarthaksahni@gmail.com"
+        }
+    ],
+    "require": {
+        "vlucas/phpdotenv": "^2.4",
+        "aws/aws-sdk-php": "^3.19"
+    }
+}
